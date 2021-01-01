@@ -1,3 +1,3 @@
 # reddit-stock-parser
 
-An implementation of sentimental analysis on social medias to analyze the stock market.
+An implementation of sentiment analysis on social medias to analyze the stock market.
