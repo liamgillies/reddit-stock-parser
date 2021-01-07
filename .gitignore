@@ -2,3 +2,5 @@ auth.py
 **/__pycache__
 *.txt
 temp.py
+mean_reversion.py
+twitter.py
