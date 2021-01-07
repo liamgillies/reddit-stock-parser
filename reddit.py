@@ -1,17 +1,13 @@
-import requests
-from auth import user_agent, client_id, client_secret, username, password
-import time, string, sys
-import collections, json
+import requests, time, string, sys, json
 from sentiment import Sentiment
 from collections import defaultdict
 from pandas_datareader.data import DataReader
-import datetime
-from datetime import date, timedelta, timezone
+from datetime import date, timedelta, timezone, datetime
 #pip install with --user to avoid error
 
-LOOKBACK_TIME_SECONDS = 24*60*60
+LOOKBACK_TIME_SECONDS = 60*60*24
 # year, month, day, hour, minute, second, milisecond // utc is 5 hours head of EST, start collecting at 4:00 EST
-START_DATE_UTC = int(datetime.datetime(2020, 12, 29, 21, 0, 0, 0).replace(tzinfo=timezone.utc).timestamp())
+START_DATE_UTC = int(datetime(2021, 1, 6, 21, 0, 0, 0).replace(tzinfo=timezone.utc).timestamp())
 NUM_DAYS_AGO = 0
 
 start_time = time.time()
@@ -67,6 +63,9 @@ for data in comments:
             #check if ticker is present in comment
             if(item["ticker"] in text_set):
                 pos_neg = sentiment.test(text)
+                # filter out neutral comments
+                if(pos_neg[0] > 0.43 and pos_neg[0] < 0.57):
+                    continue
                 # set maximum weight for score
                 score = chunk["score"] if chunk["score"] < 5 else 5
                 if(stock_dict[item["ticker"]]==0):
@@ -86,13 +85,16 @@ for key, val in stock_dict.items():
         #if symbol isn't registered in yahoo finance, skip
         try:
             data = round(DataReader(key, 'yahoo', date)['Adj Close'][0], 2)
-            output.append([key, int((val[0]/val[2])*100)/100, int((val[1]/val[2])*100)/100, data, val[2]]) 
+            output.append([key, int((val[0]/val[2])*100)/100, int((val[1]/val[2])*100)/100, data, val[2]])
+            if(len(output) % 25 == 0):
+                print(f"Created {len(output)} entries...")
         except:
             continue
+print(f"Created {len(output)} entries")
 output = sorted(output, key=lambda x: x[4], reverse=True)
 
 output_file = open('reddit_data.txt', 'a')
 formatted_date = date.strftime("%m/%d/%y")
 print(formatted_date, sep="\n", file=output_file)
 print(*output, sep="\n", file=output_file)
-print(f"Total time elapsed: {round(time.time() - start_time, 2)} seconds")
+print(f"Total time elapsed: {round((time.time() - start_time)/60, 2)} minutes")
