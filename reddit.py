@@ -37,6 +37,7 @@ for sub in subreddits:
         last_utc = comments[-1]['data'][-1]['created_utc']
         print("cycling...", time.strftime('%Y-%m-%d %H:%M:%S', time.localtime(last_utc)))
         print(round(LOOKBACK_TIME_SECONDS - START_DATE_UTC + last_utc, 2))
+        
 stock_dict = defaultdict(int)
 sentiment = Sentiment()
 sentiment.train()
